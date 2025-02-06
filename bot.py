@@ -103,11 +103,25 @@ async def remove(ctx, member: discord.Member, amount: int):
 
 # Run bot
 import os
+import discord
+from discord.ext import commands
 
 TOKEN = os.getenv("DISCORD_BOT_TOKEN")
 
 if not TOKEN:
     raise ValueError("No Discord bot token found. Make sure you set it in Render's environment variables.")
+
+intents = discord.Intents.default()
+intents.messages = True
+intents.guilds = True
+
+bot = commands.Bot(command_prefix="!", intents=intents)
+
+@bot.event
+async def on_ready():
+    print(f"Logged in as {bot.user}")
+
+bot.run(TOKEN)
 
 # Your bot code here...
 from flask import Flask

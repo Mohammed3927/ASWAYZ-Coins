@@ -43,17 +43,20 @@ async def on_message(message):
     if message.author.bot:
         return
     
-    user_id = str(message.author.id)
-    now = datetime.utcnow()
-    
-    # Check if the user is eligible for earning coins
-    if user_id not in last_message_time or now - last_message_time[user_id] >= timedelta(hours=1):
-        earned_coins = random.randint(3, 15)
-        coins[user_id] = coins.get(user_id, 100) + earned_coins
-        save_data(COIN_FILE, coins)
-        last_message_time[user_id] = now
-        save_data(TIME_FILE, last_message_time)
-        await message.channel.send(f'🎉 {message.author.mention} earned {earned_coins} ASWAYZ Coins for chatting!')
+    try:
+        user_id = str(message.author.id)
+        now = datetime.utcnow()
+
+        # التحقق من إمكانية ربح العملات للمستخدم
+        if user_id not in last_message_time or now - last_message_time[user_id] >= timedelta(hours=1):
+            earned_coins = random.randint(3, 15)
+            coins[user_id] = coins.get(user_id, 100) + earned_coins
+            save_data(COIN_FILE, coins)
+            last_message_time[user_id] = now
+            save_data(TIME_FILE, last_message_time)
+            await message.channel.send(f'🎉 {message.author.mention} earned {earned_coins} ASWAYZ Coins for chatting!')
+    except Exception as e:
+        print(f"Error occurred in on_message: {e}")
     
     await bot.process_commands(message)
 

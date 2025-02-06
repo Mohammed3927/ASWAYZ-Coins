@@ -103,8 +103,10 @@ async def remove(ctx, member: discord.Member, amount: int):
 
 # Run bot
 import os
+
 TOKEN = os.getenv("DISCORD_BOT_TOKEN")
 
-if TOKEN is None:
-    raise ValueError("No Discord bot token found. Make sure you set the DISCORD_BOT_TOKEN environment variable.")
+if not TOKEN:
+    raise ValueError("No Discord bot token found. Make sure you set it in Render's environment variables.")
 
+# Your bot code here...

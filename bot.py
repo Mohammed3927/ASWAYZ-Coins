@@ -102,5 +102,9 @@ async def remove(ctx, member: discord.Member, amount: int):
     await ctx.send(f'✅ **Removed {amount} ASWAYZ Coins from {member.name}!**')
 
 # Run bot
+import os
 TOKEN = os.getenv("DISCORD_BOT_TOKEN")
-bot.run(TOKEN)
+
+if TOKEN is None:
+    raise ValueError("No Discord bot token found. Make sure you set the DISCORD_BOT_TOKEN environment variable.")
+

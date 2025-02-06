@@ -102,15 +102,18 @@ async def remove(ctx, member: discord.Member, amount: int):
     await ctx.send(f'✅ **Removed {amount} ASWAYZ Coins from {member.name}!**')
 
 # Run bot
+import os
 import discord
 from discord.ext import commands
-import os
+from flask import Flask
+from threading import Thread
 
+# Load bot token
 TOKEN = os.getenv("DISCORD_BOT_TOKEN")
 
-# Enable all necessary intents
+# Set bot intents
 intents = discord.Intents.default()
-intents.message_content = True  # 👈 This is required!
+intents.message_content = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 
@@ -118,20 +121,19 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 async def on_ready():
     print(f"Logged in as {bot.user}")
 
-bot.run(TOKEN)
-
-# Your bot code here...
-from flask import Flask
-from threading import Thread
-
+# Fake web server for Render
 app = Flask(__name__)
 
 @app.route('/')
 def home():
     return "Bot is running!"
 
-def run():
-    app.run(host="0.0.0.0", port=8080)
+def run_web():
+    port = int(os.getenv("PORT", 8080))
+    app.run(host="0.0.0.0", port=port)
 
-Thread(target=run).start()
+# Start Flask server in a separate thread
+Thread(target=run_web).start()
 
+# Run the bot
+bot.run(TOKEN)

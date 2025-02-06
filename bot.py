@@ -4,22 +4,26 @@ import json
 import os
 import random
 from datetime import datetime, timedelta
+from flask import Flask
+from threading import Thread
 
-# Load or create the database
+# File for storing coin data
 COIN_FILE = "coins.json"
+TIME_FILE = "time.json"
 
-def load_coins():
-    if os.path.exists(COIN_FILE):
-        with open(COIN_FILE, "r") as f:
+# Load or create the database for coins and message times
+def load_data(file):
+    if os.path.exists(file):
+        with open(file, "r") as f:
             return json.load(f)
     return {}
 
-def save_coins(data):
-    with open(COIN_FILE, "w") as f:
+def save_data(file, data):
+    with open(file, "w") as f:
         json.dump(data, f, indent=4)
 
-coins = load_coins()
-last_message_time = {}
+coins = load_data(COIN_FILE)
+last_message_time = load_data(TIME_FILE)
 
 # Initialize bot
 intents = discord.Intents.default()
@@ -42,11 +46,13 @@ async def on_message(message):
     user_id = str(message.author.id)
     now = datetime.utcnow()
     
+    # Check if the user is eligible for earning coins
     if user_id not in last_message_time or now - last_message_time[user_id] >= timedelta(hours=1):
         earned_coins = random.randint(3, 15)
         coins[user_id] = coins.get(user_id, 100) + earned_coins
-        save_coins(coins)
+        save_data(COIN_FILE, coins)
         last_message_time[user_id] = now
+        save_data(TIME_FILE, last_message_time)
         await message.channel.send(f'🎉 {message.author.mention} earned {earned_coins} ASWAYZ Coins for chatting!')
     
     await bot.process_commands(message)
@@ -72,7 +78,7 @@ async def C(ctx, member: discord.Member = None, amount: int = None):
         
         coins[user_id] -= amount
         coins[target_id] += amount
-        save_coins(coins)
+        save_data(COIN_FILE, coins)
         await ctx.send(f'✅ **{ctx.author.name} sent {amount} ASWAYZ Coins to {member.name}!**')
 
 @bot.command()
@@ -83,7 +89,7 @@ async def add(ctx, member: discord.Member, amount: int):
     
     user_id = str(member.id)
     coins[user_id] = coins.get(user_id, 100) + amount
-    save_coins(coins)
+    save_data(COIN_FILE, coins)
     await ctx.send(f'✅ **Added {amount} ASWAYZ Coins to {member.name}!**')
 
 @bot.command()
@@ -98,30 +104,10 @@ async def remove(ctx, member: discord.Member, amount: int):
         return
     
     coins[user_id] -= amount
-    save_coins(coins)
+    save_data(COIN_FILE, coins)
     await ctx.send(f'✅ **Removed {amount} ASWAYZ Coins from {member.name}!**')
 
-# Run bot
-import os
-import discord
-from discord.ext import commands
-from flask import Flask
-from threading import Thread
-
-# Load bot token
-TOKEN = os.getenv("DISCORD_BOT_TOKEN")
-
-# Set bot intents
-intents = discord.Intents.default()
-intents.message_content = True
-
-bot = commands.Bot(command_prefix="!", intents=intents)
-
-@bot.event
-async def on_ready():
-    print(f"Logged in as {bot.user}")
-
-# Fake web server for Render
+# Set up Flask web server
 app = Flask(__name__)
 
 @app.route('/')
@@ -136,4 +122,5 @@ def run_web():
 Thread(target=run_web).start()
 
 # Run the bot
+TOKEN = os.getenv("DISCORD_BOT_TOKEN")
 bot.run(TOKEN)

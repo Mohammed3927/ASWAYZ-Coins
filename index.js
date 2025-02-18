@@ -1,3 +1,5 @@
+require('dotenv').config(); // Load environment variables
+
 const { Client, Intents } = require('discord.js');
 const fs = require('fs');
 const config = require('./config.json');
@@ -5,7 +7,7 @@ const config = require('./config.json');
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
 client.commands = new Map();
 
-// Load all commands from `commands/` folder
+// Load commands
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
@@ -23,4 +25,4 @@ client.on('messageCreate', async message => {
     }
 });
 
-client.login(config.token);
+client.login(process.env.BOT_TOKEN); // Use environment variable
